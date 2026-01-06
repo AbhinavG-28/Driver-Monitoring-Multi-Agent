@@ -13,6 +13,12 @@ class FaceMeshDetector:
         )
 
     def process(self, frame):
+        """
+        Input:
+            frame: BGR image from OpenCV
+        Output:
+            landmarks: list of 468 face landmarks or None
+        """
         rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
         result = self.detector.process(rgb)
 
@@ -20,3 +26,7 @@ class FaceMeshDetector:
             return None
 
         return result.multi_face_landmarks[0].landmark
+
+    # Optional alias for safety / readability
+    def get_landmarks(self, frame):
+        return self.process(frame)
