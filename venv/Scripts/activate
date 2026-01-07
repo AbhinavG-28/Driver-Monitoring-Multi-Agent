@@ -38,7 +38,7 @@ deactivate () {
 # unset irrelevant variables
 deactivate nondestructive
 
-VIRTUAL_ENV="C:\Driver monitoring\Driver-Monitoring-Multi-Agent\venv"
+VIRTUAL_ENV="D:\driver monitoring\Driver-Monitoring-Multi-Agent\venv"
 export VIRTUAL_ENV
 
 _OLD_VIRTUAL_PATH="$PATH"
