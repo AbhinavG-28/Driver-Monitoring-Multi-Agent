@@ -3,7 +3,8 @@ import cv2
 from perception.face_mesh import FaceMeshDetector
 from agents.eye_state_agent import EyeStateAgent
 from agents.blink_agent import BlinkPatternAgent
-from agents.head_pose_agent import HeadPoseAgent   
+from agents.head_pose_agent import HeadPoseAgent
+from agents.fusion_agent import FusionAgent   
 
 
 def main():
@@ -12,6 +13,7 @@ def main():
     eye_agent = EyeStateAgent()
     blink_agent = BlinkPatternAgent()
     head_pose_agent = HeadPoseAgent()
+    fusion_agent = FusionAgent()  
 
     cap = cv2.VideoCapture(0, cv2.CAP_DSHOW)
 
@@ -27,14 +29,13 @@ def main():
             print("[ERROR] Failed to grab frame")
             break
 
-        # Get face landmarks
         landmarks = face_mesh.process(frame)
 
         if landmarks is not None:
             # -------- Eye State Agent --------
             ear_value = eye_agent.update(landmarks)
 
-            # -------- Blink Agent --------
+            # -------- Blink Pattern Agent --------
             blink_score = blink_agent.update(ear_value)
 
             # -------- Head Pose Agent --------
@@ -42,6 +43,11 @@ def main():
             head_pose_score = head_pose_data["score"]
             pitch = head_pose_data["pitch"]
             yaw = head_pose_data["yaw"]
+
+            # -------- Fusion & Decision Layer --------
+            alertness_score, state = fusion_agent.update(
+                ear_value, blink_score, head_pose_score
+            )
 
             # -------- Display --------
             cv2.putText(frame, f"EAR: {ear_value:.3f}", (10, 30),
@@ -56,11 +62,18 @@ def main():
             cv2.putText(frame, f"Yaw: {yaw:.1f}   Pitch: {pitch:.1f}", (10, 120),
                         cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 200, 0), 1)
 
+            # -------- Final Decision Output --------
+            cv2.putText(frame, f"Alertness: {alertness_score:.2f}", (10, 160),
+                        cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 100), 2)
+
+            cv2.putText(frame, f"STATE: {state}", (10, 195),
+                        cv2.FONT_HERSHEY_SIMPLEX, 0.9, (0, 0, 255), 2)
+
         else:
             cv2.putText(frame, "No face detected", (10, 30),
                         cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 0, 255), 2)
 
-        cv2.imshow("Eye + Blink + Head Pose Agents", frame)
+        cv2.imshow("Driver Monitoring System", frame)
 
         # Exit on ESC
         if cv2.waitKey(1) & 0xFF == 27:
